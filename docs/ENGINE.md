@@ -18,8 +18,9 @@ You need Python 3.10-3.12 and an NVIDIA GPU with a CUDA 12.8 driver. torch 2.8.0
 ```bash
 git clone https://github.com/MayaResearch/maya2-native maya3 && cd maya3
 python -m venv .venv && . .venv/bin/activate
-pip install -e ".[server]" --extra-index-url https://download.pytorch.org/whl/cu128
-# extras: [server] = aiohttp (HTTP/WS server + client); [dev] = server deps + pytest, pytest-asyncio, pytest-aiohttp
+pip install -e ".[engine,server]" --extra-index-url https://download.pytorch.org/whl/cu128
+# extras: [engine] = torch, transformers and the inference stack (see pyproject.toml);
+#         [server] = aiohttp (HTTP/WS server + client); [dev] = server deps + pytest, pytest-asyncio, pytest-aiohttp
 ```
 
 CPU-only checks need no GPU (see `run_tests.sh` at the repo root):

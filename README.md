@@ -14,6 +14,13 @@ Python API, an OpenAI-compatible HTTP server and a WebSocket streaming server. T
 - **Voices:** 20 named voices (`voice="Ahana"`), or clone a voice from 3-10 s of audio.
 - **Text normaliser (bundled):** numbers, currency, dates, URLs and ALL-CAPS names are spoken correctly in every language.
 
+## ComfyUI
+
+This repository also ships ComfyUI nodes (model loader, text-to-speech, voice clone, and a
+faster-whisper transcription node). They install their own isolated `transformers` 5.x runtime under
+`ComfyUI/models/maya3/` and download the weights from Hugging Face automatically, leaving ComfyUI's
+Python environment untouched. See [COMFYUI.md](COMFYUI.md).
+
 ## Install
 
 You need Python 3.10-3.12, Linux and an NVIDIA GPU with a CUDA 12.8 driver (8 GB or more of GPU memory).
@@ -21,7 +28,7 @@ You need Python 3.10-3.12, Linux and an NVIDIA GPU with a CUDA 12.8 driver (8 GB
 ```bash
 git clone https://github.com/MayaResearch/maya2-native maya3 && cd maya3
 python -m venv .venv && . .venv/bin/activate
-pip install -e ".[server]" --extra-index-url https://download.pytorch.org/whl/cu128
+pip install -e ".[engine,server]" --extra-index-url https://download.pytorch.org/whl/cu128
 ```
 
 The pinned runtime is torch 2.8.0 (cu128, triton 3.4.0), transformers 5.6.2 and speechbrain 1.1.2. Weights, the
@@ -214,7 +221,7 @@ voice authentication. Tell listeners when speech is synthetic. To report misuse 
 The CPU tests need no GPU and no weights:
 
 ```bash
-pip install -e ".[dev]" --extra-index-url https://download.pytorch.org/whl/cu128
+pip install -e ".[engine,dev]" --extra-index-url https://download.pytorch.org/whl/cu128
 ./run_tests.sh            # = CUDA_VISIBLE_DEVICES= python -m pytest -q maya3/tests/test_text.py maya3/tests/test_guards.py maya3/tests/test_server.py
 ```
 

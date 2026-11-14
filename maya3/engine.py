@@ -70,6 +70,7 @@ class EngineConfig:
     gap_s: float = 0.15                  # silence between the text pieces of one request
     chunk_s: float = 20.0                # long text is split into pieces of about this many seconds
     use_graphs: bool = True
+    attention: str = "triton"            # backbone attention: "triton" (fused in-place kernel) or "gather" (portable SDPA path)
     fuse_proj: bool = False              # backbone: one GEMM for q|k|v and one for gate|up per layer
     fuse_rope: bool = True               # backbone: fused q/k RMSNorm + RoPE + KV-cache write (Triton; implies fuse_proj)
     fused_norm: bool = False             # backbone: F.rms_norm instead of the HF RMSNorm module
@@ -191,7 +192,7 @@ class Engine:
         ctx = tuple(c for c in (256, 512, 768, 1024, 1536, 2048, 3072) if c < cfg.capacity) + (cfg.capacity,)
         dt = {"bf16": torch.bfloat16, "fp16": torch.float16, "fp32": torch.float32}[cfg.depth_dtype]
         self.backbone = StaticBackbone(self.model.backbone, n, capacity=cfg.capacity, batch_buckets=rows, ctx_buckets=ctx,
-                                       attention="triton", use_graphs=cfg.use_graphs,
+                                       attention=cfg.attention, use_graphs=cfg.use_graphs,
                                        fuse_proj=cfg.fuse_proj, fused_norm=cfg.fused_norm, fuse_rope=cfg.fuse_rope)
         if cfg.compile_depth:
             import torch._dynamo as _dyn

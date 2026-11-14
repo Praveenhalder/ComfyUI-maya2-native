@@ -1,0 +1,11 @@
+# ComfyUI dependencies for the Maya2 Native nodes.
+#
+# Do NOT add torch, torchaudio, transformers, tokenizers or huggingface-hub
+# here.  ComfyUI already provides compatible versions, and the Maya3 engine
+# installs its own pinned transformers 5.x into
+# ComfyUI/models/maya3/runtime/<tag>/site (see maya3_comfy/runtime.py).
+# Upgrading ComfyUI's global transformers to 5.x would break other nodes.
+
+# Transcription node (Maya2 Native Transcribe). Faster-Whisper uses
+# CTranslate2, needs no Triton, and is the only transcription engine used.
+faster-whisper>=1.2.0

@@ -1,0 +1,9 @@
+# Development-only files, kept out of the Comfy Registry package.
+# Syntax matches .gitignore; only git-tracked files are packaged anyway.
+.github/
+docs/
+examples/
+maya3/bench/
+maya3/tests/
+maya3/tools/
+run_tests.sh

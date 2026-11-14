@@ -3,15 +3,36 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "maya3"
-version = "0.1.0"
-description = "Maya3 TTS: streaming multilingual (12 Indic languages + English) text-to-speech with zero-shot voice cloning"
+# Distribution name and Comfy Registry node id (users install with
+# `comfy node install maya2-native`).  The import package stays `maya3`;
+# the id matches this repository and the Hugging Face model card.
+name = "maya2-native"
+version = "1.0.0"
+description = "Streaming multilingual text-to-speech (11 Indic languages and English) with zero-shot voice cloning, plus ComfyUI nodes"
 readme = "README.md"
 requires-python = ">=3.10"
-license = "Apache-2.0"
+license = { file = "LICENSE" }
+# Dependencies come from requirements.txt (the ComfyUI-safe list: only
+# faster-whisper).  The Comfy Registry pip-installs `dependencies` into
+# ComfyUI's own Python, so the engine pins must NOT appear here -- they live
+# in the [engine] extra for standalone installs.  See requirements.txt.
+dynamic = ["dependencies"]
+classifiers = [
+    "Environment :: GPU :: NVIDIA CUDA",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+]
+
+[project.urls]
+Repository = "https://github.com/Praveenhalder/ComfyUI-maya2-native"
+"Bug Tracker" = "https://github.com/Praveenhalder/ComfyUI-maya2-native/issues"
+
+[project.optional-dependencies]
+# The full inference engine, for standalone (non-ComfyUI) installs:
+#   pip install -e ".[engine,server]" --extra-index-url https://download.pytorch.org/whl/cu128
 # Pins are the versions the engine was built and measured with (torch 2.8.0+cu128, transformers 5.6.2).
 # torch / torchaudio cu128 wheels come from https://download.pytorch.org/whl/cu128 (see README.md "Install").
-dependencies = [
+engine = [
     "torch==2.8.0",            # brings triton 3.4.0 (the fused backbone / depth kernels)
     "torchaudio==2.8.0",       # speechbrain needs it; must match torch
     "transformers==5.6.2",     # Qwen3 backbone, MimiModel, DynamicCache layout used by serve/cache.py
@@ -24,8 +45,6 @@ dependencies = [
     "safetensors>=0.6",
     "pyyaml>=6.0",
 ]
-
-[project.optional-dependencies]
 # HTTP (OpenAI-compatible) + WebSocket server and the client (maya3.server, maya3.client)
 server = ["aiohttp>=3.10"]
 # CPU test suite (maya3/tests): server tests run against a fake engine
@@ -33,6 +52,11 @@ dev = ["aiohttp>=3.10", "pytest>=8", "pytest-asyncio>=0.23", "pytest-aiohttp>=1.
 
 [tool.setuptools]
 include-package-data = false
+
+[tool.setuptools.dynamic]
+# Installed into ComfyUI's Python by the registry / ComfyUI-Manager.
+# requirements.txt documents why torch / transformers must NOT be listed there.
+dependencies = { file = ["requirements.txt"] }
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -44,3 +68,11 @@ namespaces = true
 [tool.setuptools.package-data]
 maya3 = ["assets/*.json"]
 configs = ["s3_fresh_v1.yaml", "text_frames_prior.json"]
+
+# --- Comfy Registry (https://registry.comfy.org) ---
+# Publish with `comfy node publish`, or automatically via
+# .github/workflows/publish_action.yml (bump `version` above and push to main).
+# PublisherId must match a publisher created on the registry website.
+[tool.comfy]
+PublisherId = "praveenhalder"
+DisplayName = "Maya2 Native TTS"
