@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 # `comfy node install maya2-native`).  The import package stays `maya3`;
 # the id matches this repository and the Hugging Face model card.
 name = "maya2-native"
-version = "1.0.1"
+version = "1.0.2"
 description = "Streaming multilingual text-to-speech (11 Indic languages and English) with zero-shot voice cloning, plus ComfyUI nodes"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -74,5 +74,5 @@ configs = ["s3_fresh_v1.yaml", "text_frames_prior.json"]
 # .github/workflows/publish_action.yml (bump `version` above and push to main).
 # PublisherId must match a publisher created on the registry website.
 [tool.comfy]
-PublisherId = "praveenhalder"
+PublisherId = "prabeenh"
 DisplayName = "Maya2 Native TTS"
