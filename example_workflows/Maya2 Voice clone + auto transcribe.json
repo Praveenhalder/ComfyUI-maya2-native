@@ -105,100 +105,6 @@
       "widgets_values_named": {}
     },
     {
-      "id": 5,
-      "type": "Maya2NativeVoiceClone",
-      "pos": [
-        1585.119759479786,
-        -15.30800863182897
-      ],
-      "size": [
-        400,
-        466
-      ],
-      "flags": {},
-      "order": 3,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "engine",
-          "type": "MAYA2_ENGINE",
-          "link": 3
-        },
-        {
-          "name": "ref_audio",
-          "type": "AUDIO",
-          "link": 4
-        },
-        {
-          "name": "ref_text",
-          "type": "STRING",
-          "widget": {
-            "name": "ref_text"
-          },
-          "link": 10
-        }
-      ],
-      "outputs": [
-        {
-          "name": "audio",
-          "type": "AUDIO",
-          "links": [
-            5
-          ]
-        },
-        {
-          "name": "duration_s",
-          "type": "FLOAT",
-          "links": null
-        },
-        {
-          "name": "seed_used",
-          "type": "INT",
-          "links": null
-        },
-        {
-          "name": "info",
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "properties": {
-        "aux_id": "Praveenhalder/ComfyUI-maya2-native",
-        "ver": "c6b376868e268551d065c4206193e96257bef4a1",
-        "Node name for S&R": "Maya2NativeVoiceClone"
-      },
-      "widgets_values": [
-        "क्या मारुति ने आखिरकार वो कर दिखाया जो किसी ने सोचा भी नहीं था? सालों से जिस मारुति को लोग सेफ्टी के नाम पर ट्रोल करते थे, उसी मारुति की नई डिजायर ने ग्लोबल एनकैप क्रैश टेस्ट में पूरे फाइव स्टार हासिल करके सबको चौंका दिया है!",
-        "Hindi (hi)",
-        "",
-        "Hindi (hi)",
-        "spk",
-        true,
-        0,
-        472118685699288,
-        "randomize",
-        0.9,
-        64,
-        1,
-        0.8
-      ],
-      "widgets_values_named": {
-        "text": "क्या मारुति ने आखिरकार वो कर दिखाया जो किसी ने सोचा भी नहीं था? सालों से जिस मारुति को लोग सेफ्टी के नाम पर ट्रोल करते थे, उसी मारुति की नई डिजायर ने ग्लोबल एनकैप क्रैश टेस्ट में पूरे फाइव स्टार हासिल करके सबको चौंका दिया है!",
-        "language": "Hindi (hi)",
-        "ref_text": "",
-        "ref_language": "Hindi (hi)",
-        "mode": "spk",
-        "normalize_text": true,
-        "max_seconds": 0,
-        "seed": 472118685699288,
-        "control_after_generate": "randomize",
-        "temperature": 0.9,
-        "top_k": 64,
-        "top_p": 1,
-        "repetition_penalty": 0.8
-      }
-    },
-    {
       "id": 6,
       "type": "LoadAudio",
       "pos": [
@@ -328,6 +234,100 @@
         "cpu_threads": 0,
         "keep_model_loaded": false
       }
+    },
+    {
+      "id": 5,
+      "type": "Maya2NativeVoiceClone",
+      "pos": [
+        1585.119759479786,
+        -15.30800863182897
+      ],
+      "size": [
+        400,
+        466
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "engine",
+          "type": "MAYA2_ENGINE",
+          "link": 3
+        },
+        {
+          "name": "ref_audio",
+          "type": "AUDIO",
+          "link": 4
+        },
+        {
+          "name": "ref_text",
+          "type": "STRING",
+          "widget": {
+            "name": "ref_text"
+          },
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            5
+          ]
+        },
+        {
+          "name": "duration_s",
+          "type": "FLOAT",
+          "links": null
+        },
+        {
+          "name": "seed_used",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "aux_id": "Praveenhalder/ComfyUI-maya2-native",
+        "ver": "c6b376868e268551d065c4206193e96257bef4a1",
+        "Node name for S&R": "Maya2NativeVoiceClone"
+      },
+      "widgets_values": [
+        "क्या मारुति ने आखिरकार वो कर दिखाया जो किसी ने सोचा भी नहीं था? सालों से जिस मारुति को लोग सेफ्टी के नाम पर ट्रोल करते थे, उसी मारुति की नई डिजायर ने ग्लोबल एनकैप क्रैश टेस्ट में पूरे फाइव स्टार हासिल करके सबको चौंका दिया है!",
+        "Hindi (hi)",
+        "",
+        "Hindi (hi)",
+        "icl_spk",
+        true,
+        0,
+        472118685699288,
+        "randomize",
+        0.9,
+        64,
+        1,
+        0.8
+      ],
+      "widgets_values_named": {
+        "text": "क्या मारुति ने आखिरकार वो कर दिखाया जो किसी ने सोचा भी नहीं था? सालों से जिस मारुति को लोग सेफ्टी के नाम पर ट्रोल करते थे, उसी मारुति की नई डिजायर ने ग्लोबल एनकैप क्रैश टेस्ट में पूरे फाइव स्टार हासिल करके सबको चौंका दिया है!",
+        "language": "Hindi (hi)",
+        "ref_text": "",
+        "ref_language": "Hindi (hi)",
+        "mode": "icl_spk",
+        "normalize_text": true,
+        "max_seconds": 0,
+        "seed": 472118685699288,
+        "control_after_generate": "randomize",
+        "temperature": 0.9,
+        "top_k": 64,
+        "top_p": 1,
+        "repetition_penalty": 0.8
+      }
     }
   ],
   "links": [
@@ -376,10 +376,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.984227007186216,
+      "scale": 0.8947518247147418,
       "offset": [
-        -575.2421870760625,
-        214.65961048851017
+        -502.19725053175466,
+        337.67655786880283
       ]
     },
     "frontendVersion": "1.52.7",
