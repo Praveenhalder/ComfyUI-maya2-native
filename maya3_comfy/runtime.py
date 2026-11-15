@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -51,6 +52,23 @@ INSTALL_SPECS = [
     "huggingface-hub==1.33.0",
     "speechbrain==1.1.2",
 ]
+
+# speechbrain declares torch/torchaudio as requirements.  Installing it with
+# ``--no-deps`` and these explicit non-torch dependencies keeps pip from copying
+# a CPU torch into the shadow site, where it would shadow ComfyUI's CUDA build.
+SPEECHBRAIN_DEPS = [
+    "hyperpyyaml",
+    "joblib",
+    "scipy",
+    "sentencepiece",
+    "soundfile",
+    "tqdm",
+]
+
+# Binary packages that must always come from ComfyUI's interpreter: they are
+# built against ComfyUI's torch/CUDA, so a copy in the shadow site breaks the
+# matching torchvision (``operator torchvision::nms does not exist``).
+HOST_PROVIDED = ("torch", "torchaudio", "torchvision", "torchgen", "functorch")
 
 MIN_TORCH = "2.7.1"
 MIN_PYTHON = (3, 10)
@@ -133,7 +151,55 @@ def _check_host() -> None:
         raise RuntimeError(f"Maya3 engine package not found under {NODE_DIR}")
 
 
-def _run_pip(site: Path, log) -> None:
+def _drop_path(path: Path) -> bool:
+    try:
+        if path.is_dir() and not path.is_symlink():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+        return True
+    except OSError:
+        return False
+
+
+def prune_host_packages(site: Path, log=None) -> list[str]:
+    """Remove torch builds pip may have copied into the shadow site.
+
+    ``pip install --target`` resolves speechbrain's ``torch``/``torchaudio``
+    requirements even though the worker is meant to reuse ComfyUI's CUDA
+    builds.  A CPU torch in the shadow site then shadows ComfyUI's torch while
+    torchvision is still loaded from ComfyUI, so its C extension refuses to
+    initialise and transformers dies with
+    ``RuntimeError: operator torchvision::nms does not exist``.  ComfyUI's
+    torch, torchaudio and torchvision are a matched set; keep them together.
+    """
+    removed: list[str] = []
+    if not site.is_dir():
+        return removed
+    host_names = set(HOST_PROVIDED)
+    for entry in sorted(site.iterdir(), key=lambda p: p.name):
+        lower = entry.name.lower()
+        if lower.endswith(".dist-info"):
+            distribution = lower[: -len(".dist-info")].split("-", 1)[0]
+        else:
+            distribution = lower
+        if distribution in host_names:
+            if _drop_path(entry):
+                removed.append(entry.name)
+            elif log is not None:
+                log(
+                    f"could not remove the stale {entry.name} from the Maya2 shadow site; "
+                    "restart ComfyUI to release it, or delete it manually"
+                )
+    if removed and log is not None:
+        log(
+            "removed torch packages from the Maya2 shadow site "
+            f"({', '.join(removed)}); using ComfyUI's matched CUDA builds"
+        )
+    return removed
+
+
+def _pip_install(site: Path, specs: list[str], log, *, no_deps: bool = False) -> None:
     site.mkdir(parents=True, exist_ok=True)
     cmd = [
         sys.executable,
@@ -146,10 +212,10 @@ def _run_pip(site: Path, log) -> None:
         "--no-compile",
         "--disable-pip-version-check",
         "--no-warn-script-location",
-        *INSTALL_SPECS,
     ]
-    log("installing isolated Maya2 runtime (one-time, ~1-3 minutes)")
-    log("  " + " ".join(INSTALL_SPECS))
+    if no_deps:
+        cmd.append("--no-deps")
+    cmd.extend(specs)
     env = os.environ.copy()
     env["PYTHONUTF8"] = "1"
     env["PYTHONIOENCODING"] = "utf-8"
@@ -188,6 +254,18 @@ def _run_pip(site: Path, log) -> None:
         )
 
 
+def _run_pip(site: Path, log) -> None:
+    log("installing isolated Maya2 runtime (one-time, ~1-3 minutes)")
+    log("  " + " ".join(INSTALL_SPECS))
+    # Install speechbrain itself without dependencies (it would drag a CPU
+    # torch into the shadow site), then add its non-torch requirements.
+    plain_specs = [spec for spec in INSTALL_SPECS if not spec.startswith("speechbrain")]
+    _pip_install(site, plain_specs, log)
+    _pip_install(site, ["speechbrain==1.1.2"], log, no_deps=True)
+    _pip_install(site, SPEECHBRAIN_DEPS, log)
+    prune_host_packages(site, log)
+
+
 def ensure_runtime(log=None) -> Path | None:
     """Return the shadow site to put on the worker's ``sys.path``.
 
@@ -220,6 +298,7 @@ def ensure_runtime(log=None) -> Path | None:
 
     _check_host()
     site = shadow_site_dir()
+    prune_host_packages(site, log)
     _, missing = site_report(site)
     if not missing:
         return site

@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 # `comfy node install maya2-native`).  The import package stays `maya3`;
 # the id matches this repository and the Hugging Face model card.
 name = "maya2-native"
-version = "1.0.0"
+version = "1.0.1"
 description = "Streaming multilingual text-to-speech (11 Indic languages and English) with zero-shot voice cloning, plus ComfyUI nodes"
 readme = "README.md"
 requires-python = ">=3.10"

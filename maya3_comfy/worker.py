@@ -382,6 +382,28 @@ class Worker:
         raise ValueError(f"unknown op {op!r}")
 
 
+def _disable_broken_torchvision() -> None:
+    """Hide torchvision when it cannot be used with the loaded torch.
+
+    transformers 5.x imports ComfyUI's torchvision from its vision helpers even
+    though the Maya3 engine only needs the Mimi audio codec.  When the installed
+    torchvision was built for a different torch, that import fails inside
+    ``torch.library`` with ``operator torchvision::nms does not exist`` and
+    takes the whole transformers import down.  Pretending torchvision is not
+    installed lets transformers take its audio-only path.
+    """
+    try:
+        import torchvision  # noqa: F401
+    except Exception as exc:
+        for name in [n for n in sys.modules if n == "torchvision" or n.startswith("torchvision.")]:
+            sys.modules.pop(name, None)
+        sys.modules["torchvision"] = None
+        log(
+            f"torchvision is unusable ({type(exc).__name__}: {exc}); "
+            "disabling it for transformers"
+        )
+
+
 def preload_runtime() -> None:
     """Import the transformers surface before speechbrain is ever touched.
 
@@ -397,6 +419,8 @@ def preload_runtime() -> None:
     log(f"torch {torch.__version__} | cuda={torch.cuda.is_available()}")
     if torch.cuda.is_available():
         log(f"gpu: {torch.cuda.get_device_name(0)} | vram={torch.cuda.get_device_properties(0).total_memory / 2**30:.2f} GiB")
+
+    _disable_broken_torchvision()
 
     # ComfyUI's optional hqq package is irrelevant here and its import-time
     # torch.compile() is a large, fragile side effect.  Hide it before the
@@ -459,6 +483,16 @@ def main() -> int:
     os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
 
     repo_root = Path(__file__).resolve().parent.parent
+
+    # Bind ComfyUI's torch before the shadow site joins sys.path.  The shadow
+    # site is only meant to override transformers/tokenizers/speechbrain; a
+    # stale torch copy inside it must not shadow ComfyUI's CUDA build (and the
+    # torchvision compiled against it).
+    try:
+        import torch  # noqa: F401
+    except Exception as exc:
+        log(f"could not preload ComfyUI torch: {exc}")
+
     if args.site:
         sys.path.insert(0, str(Path(args.site).resolve()))
     sys.path.insert(0, str(repo_root))

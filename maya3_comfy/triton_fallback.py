@@ -18,8 +18,8 @@ exponential-race / Gumbel-max trick), so statistically this matches the Triton
 kernel; only the random stream differs.
 
 Enable/disable with ``MAYA3_COMFY_TORCH_SAMPLING``: ``1`` forces the fallback
-on every platform, ``0`` always keeps Triton.  Unset means "fallback on
-Windows, Triton elsewhere".
+on every platform, ``0`` always keeps Triton.  Unset means "fallback on Windows
+or wherever Triton is unavailable, Triton elsewhere".
 """
 from __future__ import annotations
 
@@ -76,6 +76,27 @@ def torch_row_exponential(B, V, seeds, ctrs, level=0):
     return -torch.log(u.clamp_min(1e-12))
 
 
+def _stub_kernels_module():
+    """Register a stand-in for ``serve.fast_depth_kernels`` without Triton.
+
+    The real module imports ``triton`` at import time, but ``maya3.engine``
+    only needs ``row_exponential`` from it and the pure-PyTorch replacement is
+    enough for the safe preset.  Putting the stub in ``sys.modules`` makes the
+    engine's import succeed even when Triton is absent (the usual case on the
+    Windows embeddable Python).
+    """
+    import types
+
+    import serve
+
+    name = "serve.fast_depth_kernels"
+    module = types.ModuleType(name)
+    module.row_exponential = torch_row_exponential
+    sys.modules[name] = module
+    setattr(serve, "fast_depth_kernels", module)
+    return module
+
+
 def install(force: bool | None = None, log=_log_default) -> bool:
     """Replace the Triton sampler with :func:`torch_row_exponential`.
 
@@ -88,12 +109,29 @@ def install(force: bool | None = None, log=_log_default) -> bool:
         return False
     elif force is None:
         force = sys.platform == "win32"
+        if not force:
+            # Triton is the default path, but the engine imports its kernels
+            # unconditionally.  Use the fallback anywhere Triton cannot be
+            # imported so the safe preset still works.
+            try:
+                import triton  # noqa: F401
+            except Exception:
+                force = True
     if not force:
         return False
 
     try:
         import serve.fast_depth_kernels as kernels
     except Exception as exc:
+        # The module's only hard dependency is Triton.  If Triton itself is
+        # missing (or unusable), use a stub module so the engine's lazy import
+        # of row_exponential keeps working.
+        try:
+            import triton  # noqa: F401
+        except Exception:
+            _stub_kernels_module()
+            log("using the pure-PyTorch exponential sampler (Triton not installed)")
+            return True
         log(f"could not install the PyTorch sampling fallback: {exc}")
         return False
 
